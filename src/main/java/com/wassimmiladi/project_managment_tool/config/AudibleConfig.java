@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Optional;
 
@@ -12,8 +13,12 @@ import java.util.Optional;
 public class AudibleConfig {
 
     @Bean
-    public AuditorAware<String> auditorAware() {
-        return () -> Optional.of("wassim");
-        //        return () -> Optional.ofNullable("wassim");
+    public AuditorAware<String> auditorAware(){
+        return ()-> {
+            String Name = SecurityContextHolder.getContext().getAuthentication().getName();
+            //   System.out.println(Name);
+
+            return Optional.ofNullable(Name);
+        };
     }
 }

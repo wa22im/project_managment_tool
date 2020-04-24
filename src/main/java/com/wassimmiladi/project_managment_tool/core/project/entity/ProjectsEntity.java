@@ -4,6 +4,7 @@ package com.wassimmiladi.project_managment_tool.core.project.entity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.wassimmiladi.project_managment_tool.core.backlog.entity.Backlog;
+import com.wassimmiladi.project_managment_tool.core.myusers.entity.MyUser;
 import com.wassimmiladi.project_managment_tool.utils.Audible;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -47,6 +48,10 @@ public class ProjectsEntity extends Audible<String> {
     @OneToOne(fetch = FetchType.EAGER  , cascade =  CascadeType.ALL ,mappedBy = "project" )
 
     private Backlog backlog ;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
+    private MyUser user ;
 
 
 

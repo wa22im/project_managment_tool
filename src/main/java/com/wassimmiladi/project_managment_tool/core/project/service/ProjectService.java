@@ -2,6 +2,8 @@ package com.wassimmiladi.project_managment_tool.core.project.service;
 
 import com.wassimmiladi.project_managment_tool.core.backlog.entity.Backlog;
 import com.wassimmiladi.project_managment_tool.core.backlog.entity.BacklogRepository;
+import com.wassimmiladi.project_managment_tool.core.myusers.entity.MyUser;
+import com.wassimmiladi.project_managment_tool.core.myusers.entity.MyUserRepository;
 import com.wassimmiladi.project_managment_tool.core.project.entity.ProjectRepo;
 import com.wassimmiladi.project_managment_tool.core.project.entity.ProjectsEntity;
 
@@ -10,6 +12,7 @@ import com.wassimmiladi.project_managment_tool.utils.ErrorMessages;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -24,12 +27,15 @@ public class ProjectService implements  ProjectServiceInterface {
     @Autowired
     BacklogRepository backlogRepository ;
 
+    @Autowired
+    MyUserRepository myUserRepository ;
+
 
     @Override
-    public ProjectDto findProjectByProjectId(String projectId) {
+    public ProjectDto findProjectByProjectId(String projectId, String username) {
 
         projectId =  projectId.toUpperCase() ;
-        Optional<ProjectsEntity> myProjectOptional  =projectRepo.findByProjectId( projectId)  ;
+        Optional<ProjectsEntity> myProjectOptional  =projectRepo.findByProjectIdAndCreatedBy( projectId,username)  ;
         if (  !myProjectOptional.isPresent()) throw  new RuntimeException("project  does not Exist") ;
 
         ProjectDto myReturnedProject = new ProjectDto();
@@ -41,7 +47,7 @@ public class ProjectService implements  ProjectServiceInterface {
     }
 
     @Override
-    public ProjectDto createProject(ProjectDto projectDtoReceived)  throws Exception {
+    public ProjectDto createProject(ProjectDto projectDtoReceived , String username)  throws Exception {
         projectDtoReceived.setProjectId(projectDtoReceived.getProjectId().toUpperCase());
 
         if (projectRepo.findByProjectId(projectDtoReceived.getProjectId()).isPresent()) throw  new RuntimeException(ErrorMessages.RECORD_ALREADY_EXISTS.getErrorMessage()) ;
@@ -60,7 +66,12 @@ public class ProjectService implements  ProjectServiceInterface {
 
         newBacklog.setProjectIdentifier(entityProjReceived.getProjectId());
 
-         ProjectsEntity storedproject  = projectRepo.save(entityProjReceived);
+       Optional< MyUser> user = myUserRepository.findByUsername(username) ;
+
+       if (!user.isPresent()) throw   new UsernameNotFoundException("user name error") ;
+
+       entityProjReceived.setUser(user.get());
+       ProjectsEntity storedproject  = projectRepo.save(entityProjReceived);
 
          ProjectDto proReturnedValues = new ProjectDto();
 
@@ -70,7 +81,7 @@ public class ProjectService implements  ProjectServiceInterface {
     }
 
     @Override
-    public  ProjectDto updateProjectByProjectId(String projectId , ProjectDto projectDto) {
+    public  ProjectDto updateProjectByProjectId(String projectId , ProjectDto projectDto,String username) {
 
         projectId =  projectId.toUpperCase() ;
         System.out.println(projectId);
@@ -117,13 +128,13 @@ public class ProjectService implements  ProjectServiceInterface {
     }
 
     @Override
-    public String deleteProjectByProjectId(String projectId) {
+    public String deleteProjectByProjectId(String projectId , String username) {
 
 
 
         projectId =  projectId.toUpperCase() ;
         System.out.println(projectId);
-        Optional<ProjectsEntity> myProjectOptional  =projectRepo.findByProjectId( projectId)  ;
+        Optional<ProjectsEntity> myProjectOptional  =projectRepo.findByProjectIdAndCreatedBy( projectId,username)  ;
         if (  !myProjectOptional.isPresent()) throw  new RuntimeException("project  does not Exist") ;
 
         projectRepo.deleteById(myProjectOptional.get().getId());
@@ -131,9 +142,9 @@ public class ProjectService implements  ProjectServiceInterface {
         return " project deleted";
     }
 
-    public List<ProjectDto> findAllProjcts() {
+    public List<ProjectDto> findAllProjcts( String username) {
 
-        List<ProjectsEntity> projectsEntities = projectRepo.findAll();;
+        List<ProjectsEntity> projectsEntities = projectRepo.findAllByCreatedBy(username) ;
 
         List<ProjectDto> projectDtos = new ArrayList<>();
 

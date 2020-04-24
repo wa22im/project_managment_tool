@@ -1,4 +1,4 @@
-package com.wassimmiladi.project_managment_tool.exceptions;
+package com.wassimmiladi.project_managment_tool.exceptions.user;
 
 
 import lombok.Getter;

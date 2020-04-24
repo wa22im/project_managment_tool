@@ -17,7 +17,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-
+import java.security.Principal;
 
 
 @RestController
@@ -33,11 +33,11 @@ public class ProjectController {
 
 
     @GetMapping("/{projectId}")
-    ResponseEntity<?> findProjectByProjectId(@PathVariable String projectId){
+    ResponseEntity<?> findProjectByProjectId(@PathVariable String projectId,Principal principal){
 
         ResponseCreateProj returnedProject = new ResponseCreateProj() ;
 
-        ProjectDto projectDtoFounded =   projectService.findProjectByProjectId(projectId) ;
+        ProjectDto projectDtoFounded =   projectService.findProjectByProjectId(projectId,principal.getName()) ;
 
         BeanUtils.copyProperties(projectDtoFounded,returnedProject);
         return new ResponseEntity<>( returnedProject , HttpStatus.OK)  ;
@@ -46,7 +46,7 @@ public class ProjectController {
 
 
     @PostMapping("")
-    ResponseEntity<?> createNewProject (@Valid @RequestBody CreateProjectUi createProjectUi , BindingResult bindingResult) throws Exception {
+    ResponseEntity<?> createNewProject (@Valid @RequestBody CreateProjectUi createProjectUi , BindingResult bindingResult , Principal principal) throws Exception {
 
         /* form validition*/
 
@@ -60,7 +60,7 @@ public class ProjectController {
 
         BeanUtils.copyProperties(createProjectUi, proDetails);
 
-        proDetails =   projectService.createProject(proDetails);
+        proDetails =   projectService.createProject(proDetails,principal.getName());
 
         BeanUtils.copyProperties(proDetails,returnedValue);
 
@@ -68,9 +68,9 @@ public class ProjectController {
     }
 
     @GetMapping("/all")
-    ResponseEntity<?> findAllProjects ( ) {
+    ResponseEntity<?> findAllProjects ( Principal principal) {
 
-        Iterable<ProjectDto> projectDtos = projectService.findAllProjcts ( ) ;
+        Iterable<ProjectDto> projectDtos = projectService.findAllProjcts (principal.getName() ) ;
 
 
         return   new ResponseEntity<>( projectDtos , HttpStatus.OK  ) ;
@@ -78,10 +78,10 @@ public class ProjectController {
 
 
     @DeleteMapping ("/{projectId}")
-    ResponseEntity<?> deleteProjectByProjectId(@PathVariable String projectId){
+    ResponseEntity<?> deleteProjectByProjectId(@PathVariable String projectId, Principal principal){
 
 
-        MessageResponse messageResponse =new MessageResponse(projectService.deleteProjectByProjectId(projectId) ) ;
+        MessageResponse messageResponse =new MessageResponse(projectService.deleteProjectByProjectId(projectId ,principal.getName()) ) ;
 
 
         return  new ResponseEntity<>(messageResponse , HttpStatus.OK) ;
@@ -89,14 +89,14 @@ public class ProjectController {
     }
 
     @PutMapping("/{projectId}")
-    ResponseEntity<?> updateProjectByProjectId(@PathVariable String projectId , @RequestBody UpdateProjectRequestModal updateProjectRequestModal){
+    ResponseEntity<?> updateProjectByProjectId(@PathVariable String projectId , @RequestBody UpdateProjectRequestModal updateProjectRequestModal , Principal principal){
 
 
         ProjectDto projectDto = new ProjectDto() ;
 
         BeanUtils.copyProperties(updateProjectRequestModal , projectDto);
 
-        ProjectDto  updatedProjectDto =  projectService.updateProjectByProjectId(projectId , projectDto ) ;
+        ProjectDto  updatedProjectDto =  projectService.updateProjectByProjectId(projectId , projectDto , principal.getName() ) ;
 
         UpdateResponseModal updateResponseModal = new UpdateResponseModal() ;
 
